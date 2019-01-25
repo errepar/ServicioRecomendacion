@@ -1,0 +1,99 @@
+﻿idSubTemas;nameSubtema;idTema
+1;COP;1
+2;Temas;1
+3;Calendario;1
+4;Login;1
+5;ALTA GAMA;2
+6;BAJA GAMA;2
+7;MEDIA GAMA;2
+8;PREMIUM;2
+9;Sin Categoría;2
+10;Login;4
+21;ALTA GAMA;3
+22;BAJA GAMA;3
+23;MEDIA GAMA;3
+24;PREMIUM;3
+25;Sin Categoría;3
+26;A1;5
+27;A2;5
+28;A3;5
+29;A4;5
+30;B1;5
+31;B2;5
+32;B3;5
+33;B4;5
+34;C1;5
+35;C2;5
+36;C3;5
+37;C4;5
+38;L;5
+39;J1;5
+40;J2;5
+41;J3;5
+42;J4;5
+43;X;5
+44;Sin Categoría;5
+47;CATAMARCA                     ;6
+48;CHACO                         ;6
+49;CHUBUT                        ;6
+50;CORDOBA                       ;6
+51;CORRIENTES                    ;6
+52;ENTRE RIOS                    ;6
+53;FORMOSA                       ;6
+54;JUJUY                         ;6
+55;LA PAMPA                      ;6
+56;LA RIOJA                      ;6
+57;MENDOZA                       ;6
+58;MISIONES                      ;6
+59;NEUQUEN                       ;6
+60;RIO NEGRO                     ;6
+61;SALTA                         ;6
+62;SAN JUAN                      ;6
+63;SAN LUIS                      ;6
+64;SANTA CRUZ                    ;6
+65;SANTA FE                      ;6
+66;SANTIAGO DEL ESTERO           ;6
+67;TIERRA DEL FUEGO              ;6
+68;TUCUMAN                       ;6
+69;URUGUAY                       ;6
+71;VENEZUELA                     ;6
+72;CHILE                         ;6
+73;PERU                          ;6
+74;PRADESH SOUTH INDIA           ;6
+75;ESTADOS UNIDOS                ;6
+76;Mailing EOL;1
+77;Mailing IUS;4
+78;Baja Mailing EOL;1
+79;Baja Mailing IUS;4
+81;PUERTO RICO                   ;6
+82;SUIZA                         ;6
+83;UNITED KINGDOM                ;6
+91;COLOMBIA                      ;6
+100;BAHAMAS                       ;6
+101;BOLIVIA                       ;6
+102;BUENOS AIRES                  ;6
+103;EL SALVADOR                   ;6
+104;GUATEMALA                     ;6
+105;GUAYAQUIL                     ;6
+106;HOLANDA                       ;6
+107;NEPAL                         ;6
+108;PARAGUAY                      ;6
+109;SAN JOSE                      ;6
+110;STRASBOURG                    ;6
+112;CAPITAL FEDERAL               ;6
+113;QUITO                         ;6
+114;PANAMA                        ;6
+115;BRASIL                        ;6
+116;ESPAÑA                        ;6
+117;MEXICO                        ;6
+120;Alertas;1
+129;TOL;9
+130;TOL;10
+121;Temas;4
+122;Económicas;7
+123;Contabilidad;7
+124;Impuestos;7
+125;Laboral;7
+126;Sociedades;7
+127;Otros;7
+128;Jurídico;8
