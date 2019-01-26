@@ -1,0 +1,4 @@
+AS_NoAciertosByLink.csv
+
+1. "TipoContenido" tiene una sola palabra, "obra" tiene todo el resto -> CONCATENAR CON ","
+2. Borrar las "," que quedan acumuladas al final con REGEXP -> ((\,)+\n) 
