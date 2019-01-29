@@ -1,0 +1,2 @@
+select distinct clicod
+from behaviours_data
