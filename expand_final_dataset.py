@@ -13,15 +13,19 @@ del csv_rows[0]
 posicion_cantidad_replicaciones = 13
 
 final_csv = []
-for row in csv_rows:
+# for row in csv_rows:
+for i in range(0, len(csv_rows)):
+    print('Procesando fila {0} de {1}'.format(i, len(csv_rows)))
+
+    row = csv_rows[i]
+
     # Agrego UNO por las filas que no tienen replicación
     cantidad_replicaciones = round(float(row[posicion_cantidad_replicaciones]) + 1)
 
     # Replico las filas según la cantidad especificada en el último campo del CSV
-    for i in range(0, cantidad_replicaciones):
+    for j in range(0, cantidad_replicaciones):
         final_csv.append(row)
 
-df = pd.DataFrame(final_csv)
 df = pd.DataFrame(data=final_csv, columns=header)
 del df['CantidadReplicaciones']
 del df['Proporcion']

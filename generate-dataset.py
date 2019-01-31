@@ -1,6 +1,8 @@
 import sqlite3
 import pandas as pd
 import re
+import csv
+from zipfile import ZipFile
 
 
 connection = sqlite3.connect('errepar-data.db')
@@ -40,6 +42,12 @@ def clean_values(value):
     if aux == 'PF':
         return '0'
 
+    if aux == '[No Per. Consec.]':
+        return 'None'
+
+    if aux == '':
+        return 'None'
+
     return aux
 
 
@@ -52,7 +60,25 @@ def extract_years(text):
     return matches.group(0)
 
 
-limitar_cantidad_clientes = True
+def format_number(text):
+    aux = extract_years(text)
+
+    aux = aux.replace('None', '0')
+    aux = aux.replace('>=', '')
+    aux = aux.replace('<=', '')
+
+    return aux
+
+
+def format_score(value):
+    return value.replace('None', '0.0')
+
+
+def format_persona_juridica_fisica(value):
+    return value.replace('None', '2')
+
+
+limitar_cantidad_clientes = False
 cantidad_clientes_buscar = 20
 
 n_max_servicios = 5
@@ -80,7 +106,48 @@ for cliente in clientes:
         break
 
 
-df['TasaEOL'] = df['TasaEOL'].apply(lambda x: extract_years(x))
-df['TasaIUS'] = df['TasaIUS'].apply(lambda x: extract_years(x))
+df['Edad'] = df['Edad'].apply(lambda x: format_number(x))
+df['TasaEOL'] = df['TasaEOL'].apply(lambda x: format_number(x))
+df['TasaIUS'] = df['TasaIUS'].apply(lambda x: format_number(x))
+df['TipoPersona'] = df['TipoPersona'].apply(lambda x: format_persona_juridica_fisica(x))
+df['DebitoAutomatico'] = df['DebitoAutomatico'].apply(lambda x: format_persona_juridica_fisica(x))
+df['Score'] = df['Score'].apply(lambda x: format_score(x))
 
 df.to_csv('dataset_intermedio.csv', index=False, sep=';')
+
+
+csv_file = open('dataset_intermedio.csv', mode='r')
+csv_reader = csv.reader(csv_file, delimiter=';')
+csv_rows = list(csv_reader)
+
+# Elimino el header del CSV
+header = csv_rows[0]
+
+del csv_rows[0]
+
+posicion_cantidad_replicaciones = 13
+
+final_csv = []
+# for row in csv_rows:
+for i in range(0, len(csv_rows)):
+    print('Procesando fila {0} de {1}'.format(i, len(csv_rows)))
+
+    row = csv_rows[i]
+
+    # Agrego UNO por las filas que no tienen replicación
+    cantidad_replicaciones = round(float(row[posicion_cantidad_replicaciones]) + 1)
+
+    # Replico las filas según la cantidad especificada en el último campo del CSV
+    for j in range(0, cantidad_replicaciones):
+        final_csv.append(row)
+
+df = pd.DataFrame(data=final_csv, columns=header)
+del df['CantidadReplicaciones']
+del df['Proporcion']
+del df['TotalVisitas']
+del df['CantidadVisitas']
+df.to_csv('train.csv', index=False, sep=',')
+
+zf = ZipFile('dataset_final.zip', mode='w')
+zf.write('train.csv')
+zf.close()
