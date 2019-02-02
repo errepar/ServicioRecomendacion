@@ -78,7 +78,7 @@ def format_persona_juridica_fisica(value):
     return value.replace('None', '2')
 
 
-limitar_cantidad_clientes = False
+limitar_cantidad_clientes = True
 cantidad_clientes_buscar = 20
 
 n_max_servicios = 5

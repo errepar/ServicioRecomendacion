@@ -10,6 +10,8 @@ behaviours = pd.read_csv('./data/AS_TypesOfBehaviour.csv', sep=';')
 behaviours_data = pd.read_csv('./data/GetBehaviurData1.csv', sep=';')
 behaviours_data_client = pd.read_csv('./data/get_BehaviuorDataClient.csv', sep=';')
 no_aciertos = pd.read_csv('./data/AS_NoAciertosByLink.csv', sep=';')
+domicilios = pd.read_csv('./data/domicilios.csv', sep=';')
+suscripciones = pd.read_csv('./data/suscripciones.csv', sep=';')
 
 # Burocracia para conectar a SQLite
 connection = sqlite3.connect('errepar-data.db')
@@ -21,6 +23,8 @@ behaviours.to_sql('behaviours', connection, if_exists='replace')
 behaviours_data.to_sql('behaviours_data', connection, if_exists='replace')
 behaviours_data_client.to_sql('behaviours_data_client', connection, if_exists='replace')
 no_aciertos.to_sql('no_aciertos', connection, if_exists='replace')
+domicilios.to_sql('domicilios', connection, if_exists='replace')
+suscripciones.to_sql('suscripciones', connection, if_exists='replace')
 
 # Burocracia para confirmar y cerrar la conexión
 connection.commit()
