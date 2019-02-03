@@ -5,10 +5,12 @@ import csv
 from zipfile import ZipFile
 
 
+query_servicios = open('./sql/search_most_used.sql', mode='r', encoding='utf-8').read()
+query_clientes = open('./sql/get_clients.sql', mode='r', encoding='utf-8').read()
+query_suscripciones = open('./sql/get_client_suscriptions.sql', mode='r', encoding='utf-8').read()
+
 connection = sqlite3.connect('errepar-data.db')
 cursor = connection.cursor()
-query_servicios = open('search_most_used.sql', mode='r', encoding='utf-8').read()
-query_clientes = open('get_clients.sql', mode='r', encoding='utf-8').read()
 
 cursor.execute(query_clientes)
 clientes = list(map(lambda cliente: cliente[0], cursor.fetchall()))
@@ -16,9 +18,19 @@ clientes = list(map(lambda cliente: cliente[0], cursor.fetchall()))
 
 def get_client_n_most_used_services(client_code, n):
     cursor.execute(query_servicios.format(client_code, n))
+
     headers = list(map(lambda x: x[0], cursor.description))
+    headers.extend([('suscripcion_' + str(i)) for i in range(1, 15)])
+
     results = cursor.fetchall()
+
     return headers, results
+
+
+def get_client_suscriptions(client_code):
+    cursor.execute(query_suscripciones.format(client_code))
+
+    return list(map(lambda x: x[0].strip(), cursor.fetchall()))
 
 
 def clean_values(value):
@@ -83,6 +95,7 @@ cantidad_clientes_buscar = 20
 
 n_max_servicios = 5
 factor_replicacion = 10
+max_suscripciones = 14
 
 contador = 0
 maximo = len(clientes)
@@ -91,6 +104,11 @@ df = pd.DataFrame()
 for cliente in clientes:
     header, datos = get_client_n_most_used_services(cliente, n_max_servicios)
     datos = list(map(lambda lista: list(map(lambda x: clean_values(str(x)), lista)), datos))
+
+    suscripciones = get_client_suscriptions(cliente)
+    suscripciones.extend(['0' for i in range(0, max_suscripciones - len(suscripciones))])
+    for lista in datos:
+        lista.extend(suscripciones)
 
     df_aux = pd.DataFrame(data=datos, columns=header)
     df_aux['TotalVisitas'] = pd.to_numeric(df_aux['CantidadVisitas']).sum()
@@ -125,7 +143,8 @@ header = csv_rows[0]
 
 del csv_rows[0]
 
-posicion_cantidad_replicaciones = 13
+# posicion_cantidad_replicaciones = 13
+posicion_cantidad_replicaciones = len(df.columns) - 1
 
 final_csv = []
 # for row in csv_rows:
