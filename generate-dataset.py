@@ -8,6 +8,7 @@ from zipfile import ZipFile
 query_servicios = open('./sql/search_most_used.sql', mode='r', encoding='utf-8').read()
 query_clientes = open('./sql/get_clients.sql', mode='r', encoding='utf-8').read()
 query_suscripciones = open('./sql/get_client_suscriptions.sql', mode='r', encoding='utf-8').read()
+query_domicilios = open('./sql/get_client_address.sql', mode='r', encoding='utf-8').read()
 
 connection = sqlite3.connect('errepar-data.db')
 cursor = connection.cursor()
@@ -21,6 +22,7 @@ def get_client_n_most_used_services(client_code, n):
 
     headers = list(map(lambda x: x[0], cursor.description))
     headers.extend([('suscripcion_' + str(i)) for i in range(1, 15)])
+    headers.extend([('localidad_' + str(i)) for i in range(1, 3)])
 
     results = cursor.fetchall()
 
@@ -29,6 +31,12 @@ def get_client_n_most_used_services(client_code, n):
 
 def get_client_suscriptions(client_code):
     cursor.execute(query_suscripciones.format(client_code))
+
+    return list(map(lambda x: x[0].strip(), cursor.fetchall()))
+
+
+def get_client_address(client_code):
+    cursor.execute(query_domicilios.format(client_code))
 
     return list(map(lambda x: x[0].strip(), cursor.fetchall()))
 
@@ -96,6 +104,7 @@ cantidad_clientes_buscar = 20
 n_max_servicios = 5
 factor_replicacion = 10
 max_suscripciones = 14
+max_domicilios = 2
 
 contador = 0
 maximo = len(clientes)
@@ -107,8 +116,12 @@ for cliente in clientes:
 
     suscripciones = get_client_suscriptions(cliente)
     suscripciones.extend(['0' for i in range(0, max_suscripciones - len(suscripciones))])
+    domicilios = get_client_address(cliente)
+    domicilios.extend(['0' for i in range(0, max_domicilios - len(domicilios))])
+
     for lista in datos:
         lista.extend(suscripciones)
+        lista.extend(domicilios)
 
     df_aux = pd.DataFrame(data=datos, columns=header)
     df_aux['TotalVisitas'] = pd.to_numeric(df_aux['CantidadVisitas']).sum()
