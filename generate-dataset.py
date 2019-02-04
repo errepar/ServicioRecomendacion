@@ -32,7 +32,16 @@ def get_client_n_most_used_services(client_code, n):
 def get_client_suscriptions(client_code):
     cursor.execute(query_suscripciones.format(client_code))
 
-    return list(map(lambda x: x[0].strip(), cursor.fetchall()))
+    suscriptions = list(map(lambda x: x[0].strip(), cursor.fetchall()))
+    suscriptions = list(map(lambda x: x.replace(',', ''), suscriptions))
+    suscriptions = list(map(lambda x: x.replace('.', ''), suscriptions))
+    suscriptions = list(map(lambda x: x.replace('(', ''), suscriptions))
+    suscriptions = list(map(lambda x: x.replace(')', ''), suscriptions))
+    suscriptions = list(map(lambda x: x.replace('-', ''), suscriptions))
+    suscriptions = list(map(lambda x: x.replace('+', ''), suscriptions))
+    suscriptions = list(map(lambda x: x.replace('/', ''), suscriptions))
+
+    return suscriptions
 
 
 def get_client_address(client_code):
@@ -98,7 +107,7 @@ def format_persona_juridica_fisica(value):
     return value.replace('None', '2')
 
 
-limitar_cantidad_clientes = True
+limitar_cantidad_clientes = False
 cantidad_clientes_buscar = 20
 
 n_max_servicios = 5
@@ -144,10 +153,10 @@ df['TipoPersona'] = df['TipoPersona'].apply(lambda x: format_persona_juridica_fi
 df['DebitoAutomatico'] = df['DebitoAutomatico'].apply(lambda x: format_persona_juridica_fisica(x))
 df['Score'] = df['Score'].apply(lambda x: format_score(x))
 
-df.to_csv('dataset_intermedio.csv', index=False, sep=';')
+df.to_csv('./dls/datasets/dataset_intermedio.csv', index=False, sep=';')
 
 
-csv_file = open('dataset_intermedio.csv', mode='r')
+csv_file = open('./dls/datasets/dataset_intermedio.csv', mode='r')
 csv_reader = csv.reader(csv_file, delimiter=';')
 csv_rows = list(csv_reader)
 
@@ -178,8 +187,46 @@ del df['CantidadReplicaciones']
 del df['Proporcion']
 del df['TotalVisitas']
 del df['CantidadVisitas']
-df.to_csv('train.csv', index=False, sep=',')
 
-zf = ZipFile('dataset_final.zip', mode='w')
-zf.write('train.csv')
+del df['CodigoCliente']
+del df['NameTema']
+del df['NameBehaviour']
+
+servicios = df['suscripcion_1']\
+    .append(df['suscripcion_2'])\
+    .append(df['suscripcion_3'])\
+    .append(df['suscripcion_4'])\
+    .append(df['suscripcion_5'])\
+    .append(df['suscripcion_6'])\
+    .append(df['suscripcion_7'])\
+    .append(df['suscripcion_8'])\
+    .append(df['suscripcion_9'])\
+    .append(df['suscripcion_10'])\
+    .append(df['suscripcion_11'])\
+    .append(df['suscripcion_12'])\
+    .append(df['suscripcion_13'])\
+    .append(df['suscripcion_14'])\
+    .unique()
+
+dict_servicios = dict(zip(servicios, range(0, len(servicios))))
+
+df = df.replace({'suscripcion_1': dict_servicios})\
+    .replace({'suscripcion_2': dict_servicios})\
+    .replace({'suscripcion_3': dict_servicios})\
+    .replace({'suscripcion_4': dict_servicios})\
+    .replace({'suscripcion_5': dict_servicios})\
+    .replace({'suscripcion_6': dict_servicios})\
+    .replace({'suscripcion_7': dict_servicios})\
+    .replace({'suscripcion_8': dict_servicios})\
+    .replace({'suscripcion_9': dict_servicios})\
+    .replace({'suscripcion_10': dict_servicios})\
+    .replace({'suscripcion_11': dict_servicios})\
+    .replace({'suscripcion_12': dict_servicios})\
+    .replace({'suscripcion_13': dict_servicios})\
+    .replace({'suscripcion_14': dict_servicios})
+
+df.to_csv('./dls/datasets/train.csv', index=False, sep=',')
+
+zf = ZipFile('./dls/datasets/dataset_final.zip', mode='w')
+zf.write('./dls/datasets/train.csv')
 zf.close()
