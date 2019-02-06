@@ -3,7 +3,9 @@ from keras.models import load_model
 import numpy as np
 
 app = Flask(__name__)
-clasificador_tema = load_model('./dls/models/recomendador-errepar-tema_4/model.h5')
+clasificador_tema = load_model('./dls/models/recomendador-errepar-tema_83/model.h5')
+clasificador_subtema = load_model('./dls/models/recomendador-errepar-subtema_4/model.h5')
+clasificador_behaviour = load_model('./dls/models/recomendador-errepar-behaviour_0/model.h5')
 
 
 @app.route('/')
