@@ -60,7 +60,7 @@ def extract_classifier_input_shape(clasificador):
 
 def extract_prediction_from_onehot(onehot_vector, data_mapping):
     categories = data_mapping['outputs']['OutputPort0']['details'][0]['categories']
-    onehot_max = np.argmax(onehot_vector) + 1
+    onehot_max = np.argmax(onehot_vector)
 
     return int(categories[onehot_max])
 
