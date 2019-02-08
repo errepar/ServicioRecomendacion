@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from io import StringIO
 import pandas as pd
 from keras.models import load_model
 import pickle
@@ -11,6 +12,9 @@ clasificador_subtema = load_model('./dls/models/recomendador-errepar-subtema_4/m
 clasificador_behaviour = load_model('./dls/models/recomendador-errepar-behaviour_0/model.h5')
 
 diccionario_servicios = pd.read_csv('diccionario_servicios.csv').set_index('servicio').to_dict()['id']
+diccionario_subtema_tema = pd.read_csv('diccionario_subtema_tema.csv').set_index('subtema').to_dict()['tema']
+diccionario_behaviour_subtema = pd.read_csv('diccionario_behaviour_subtema.csv').set_index('behaviour')\
+    .to_dict()['subtema']
 
 data_mapping_tema = pickle.load(open('./dls/models/recomendador-errepar-tema_83/mapping.pkl', mode='rb'))
 data_mapping_subtema = pickle.load(open('./dls/models/recomendador-errepar-subtema_4/mapping.pkl', mode='rb'))
@@ -22,26 +26,39 @@ def hello_world():
     return jsonify(servicios=diccionario_servicios)
 
 
-@app.route('/predict')
+@app.route('/predict', methods=['GET'])
 def predict():
-    # client_data = {}  # Parte del body del GET
-    client_data = pd.read_csv('prueba.csv').to_dict(orient='index')[0]  # PROVISORIO!!
+    client_data = read_csv_from_request()
 
     y_tema = make_single_stage_prediction(client_data, data_mapping_tema, clasificador_tema)
-    client_data['IdTema'] = extract_prediction_from_onehot(y_tema, data_mapping_tema)
+    pred_tema, categorias_tema = extract_prediction_from_onehot(y_tema, data_mapping_tema)
+    client_data['IdTema'] = pred_tema
 
     y_subtema = make_single_stage_prediction(client_data, data_mapping_subtema, clasificador_subtema)
-    client_data['IdSubtema'] = extract_prediction_from_onehot(y_subtema, data_mapping_subtema)
+    pred_subtema, categorias_subtema = extract_prediction_from_onehot(y_subtema, data_mapping_subtema)
+    pred_subtema = validate_consistency(y_subtema, categorias_subtema, pred_subtema, pred_tema, diccionario_subtema_tema)
+    client_data['IdSubtema'] = pred_subtema
 
     y_behaviour = make_single_stage_prediction(client_data, data_mapping_behaviour, clasificador_behaviour)
-    client_data['IdBehaviour'] = extract_prediction_from_onehot(y_behaviour, data_mapping_behaviour)
+    pred_behaviour, categorias_behaviour = extract_prediction_from_onehot(y_behaviour, data_mapping_behaviour)
+    pred_behaviour = validate_consistency(y_behaviour, categorias_behaviour, pred_behaviour, pred_subtema, diccionario_behaviour_subtema)
+    client_data['IdBehaviour'] = pred_behaviour
 
     return jsonify(
         tema=y_tema.tolist(), subtema=y_subtema.tolist(), behaviour=y_behaviour.tolist(),
-        tema_final=client_data['IdTema'],
-        subtema_final=client_data['IdSubtema'],
-        behaviour_final=client_data['IdBehaviour']
+        prediccion_final={
+            'tema': client_data['IdTema'],
+            'subtema': client_data['IdSubtema'],
+            'behaviour': client_data['IdBehaviour']
+        }
     )
+
+
+def read_csv_from_request():
+    client_data = StringIO(request.files['client_data'].stream.read().decode('utf-8'))
+    client_data = pd.read_csv(client_data).to_dict(orient='index')[0]
+
+    return client_data
 
 
 def make_single_stage_prediction(client_data, data_mapping, clasificador):
@@ -54,15 +71,35 @@ def make_single_stage_prediction(client_data, data_mapping, clasificador):
     return prediction
 
 
-def extract_classifier_input_shape(clasificador):
-    return 1, clasificador.input.shape[1].value
-
-
 def extract_prediction_from_onehot(onehot_vector, data_mapping):
     categories = data_mapping['outputs']['OutputPort0']['details'][0]['categories']
     onehot_max = np.argmax(onehot_vector)
 
-    return int(categories[onehot_max])
+    final_prediction = int(categories[onehot_max])
+
+    return final_prediction, categories
+
+
+def validate_consistency(current_pred_raw, categories, current_pred, last_pred, consistency_dict):
+    if consistency_dict[current_pred] == last_pred:
+        return current_pred
+
+    probabilities_ranking = []
+    for prob, cat in zip(current_pred_raw[0].tolist(), categories.tolist()):
+        probabilities_ranking.append((prob, cat))
+
+    # probabilities_ranking = zip(current_pred_raw.tolist(), categories)
+    probabilities_ranking = sorted(probabilities_ranking, key=lambda tupla: tupla[0], reverse=True)
+
+    for prob_cat in probabilities_ranking:
+        if consistency_dict[prob_cat[1]] == last_pred:
+            return prob_cat[1]
+
+    raise RuntimeError('validate_consistency: no se encontró consistencia')
+
+
+def extract_classifier_input_shape(clasificador):
+    return 1, clasificador.input.shape[1].value
 
 
 def get_vectorized_representation(features_dict, data_mapping, shape):
