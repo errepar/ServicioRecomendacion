@@ -4,6 +4,7 @@ import pandas as pd
 from keras.models import load_model
 import pickle
 import numpy as np
+import sqlite3
 
 app = Flask(__name__)
 
@@ -19,6 +20,10 @@ diccionario_behaviour_subtema = pd.read_csv('diccionario_behaviour_subtema.csv')
 data_mapping_tema = pickle.load(open('./dls/models/recomendador-errepar-tema_83/mapping.pkl', mode='rb'))
 data_mapping_subtema = pickle.load(open('./dls/models/recomendador-errepar-subtema_4/mapping.pkl', mode='rb'))
 data_mapping_behaviour = pickle.load(open('./dls/models/recomendador-errepar-behaviour_0/mapping.pkl', mode='rb'))
+
+connection = sqlite3.connect('errepar-data.db')
+cursor = connection.cursor()
+query_client_services = open('./sql/get_client_used_services.sql', mode='r', encoding='utf-8').read()
 
 
 @app.route('/')
@@ -36,12 +41,12 @@ def predict():
 
     y_subtema = make_single_stage_prediction(client_data, data_mapping_subtema, clasificador_subtema)
     pred_subtema, categorias_subtema = extract_prediction_from_onehot(y_subtema, data_mapping_subtema)
-    pred_subtema = validate_consistency(y_subtema, categorias_subtema, pred_subtema, pred_tema, diccionario_subtema_tema)
+    # pred_subtema = validate_consistency(y_subtema, categorias_subtema, pred_subtema, pred_tema, diccionario_subtema_tema)
     client_data['IdSubtema'] = pred_subtema
 
     y_behaviour = make_single_stage_prediction(client_data, data_mapping_behaviour, clasificador_behaviour)
     pred_behaviour, categorias_behaviour = extract_prediction_from_onehot(y_behaviour, data_mapping_behaviour)
-    pred_behaviour = validate_consistency(y_behaviour, categorias_behaviour, pred_behaviour, pred_subtema, diccionario_behaviour_subtema)
+    # pred_behaviour = validate_consistency(y_behaviour, categorias_behaviour, pred_behaviour, pred_subtema, diccionario_behaviour_subtema)
     client_data['IdBehaviour'] = pred_behaviour
 
     return jsonify(
@@ -52,6 +57,16 @@ def predict():
             'behaviour': client_data['IdBehaviour']
         }
     )
+
+
+@app.route('/clientservices/<client_id>', methods=['GET'])
+def get_client_used_services(client_id):
+    cursor.execute(query_client_services.format(client_id))
+
+    results = cursor.fetchall()
+    results = list(map(lambda x: x[0], results))
+
+    return jsonify(servicios=results)
 
 
 def read_csv_from_request():
