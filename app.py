@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from io import StringIO
 import pandas as pd
 from keras.models import load_model
@@ -7,6 +8,7 @@ import numpy as np
 import sqlite3
 
 app = Flask(__name__)
+CORS(app)
 
 clasificador_tema = load_model('./dls/models/recomendador-errepar-tema_83/model.h5')
 clasificador_subtema = load_model('./dls/models/recomendador-errepar-subtema_4/model.h5')
@@ -31,7 +33,7 @@ def hello_world():
     return jsonify(servicios=diccionario_servicios)
 
 
-@app.route('/predict', methods=['GET'])
+@app.route('/predict', methods=['POST'])
 def predict():
     client_data = read_csv_from_request()
 
