@@ -52,7 +52,16 @@ def predict():
     client_data['IdBehaviour'] = pred_behaviour
 
     return jsonify(
-        tema=y_tema.tolist(), subtema=y_subtema.tolist(), behaviour=y_behaviour.tolist(),
+        predicciones_raw={
+            'tema': y_tema.tolist(),
+            'subtema': y_subtema.tolist(),
+            'behaviour': y_behaviour.tolist()
+        },
+        categorias_asociadas={
+            'tema': categorias_tema.tolist(),
+            'subtema': categorias_subtema.tolist(),
+            'behaviour': categorias_behaviour.tolist()
+        },
         prediccion_final={
             'tema': client_data['IdTema'],
             'subtema': client_data['IdSubtema'],
