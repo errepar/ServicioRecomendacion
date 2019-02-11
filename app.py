@@ -33,8 +33,8 @@ def hello_world():
     return jsonify(servicios=diccionario_servicios)
 
 
-@app.route('/predict', methods=['POST'])
-def predict():
+@app.route('/predict/<client_id>', methods=['POST'])
+def predict(client_id):
     client_data = read_csv_from_request()
 
     y_tema = make_single_stage_prediction(client_data, data_mapping_tema, clasificador_tema)
@@ -51,6 +51,11 @@ def predict():
     # pred_behaviour = validate_consistency(y_behaviour, categorias_behaviour, pred_behaviour, pred_subtema, diccionario_behaviour_subtema)
     client_data['IdBehaviour'] = pred_behaviour
 
+    cursor.execute(query_client_services.format(client_id))
+
+    results_servicios = cursor.fetchall()
+    results_servicios = list(map(lambda x: x[0], results_servicios))
+
     return jsonify(
         predicciones_raw={
             'tema': y_tema.tolist(),
@@ -66,7 +71,8 @@ def predict():
             'tema': client_data['IdTema'],
             'subtema': client_data['IdSubtema'],
             'behaviour': client_data['IdBehaviour']
-        }
+        },
+        servicios=results_servicios
     )
 
 

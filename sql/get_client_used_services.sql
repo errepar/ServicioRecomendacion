@@ -1,5 +1,5 @@
-select idTypeOfBehaviour
+select idTypeOfBehaviour, NameOfBehaviour
 from behaviours_data
-where clicod = 301180
+where clicod = {0}
 group by idTypeOfBehaviour
 order by sum(frecuBehaviour) desc

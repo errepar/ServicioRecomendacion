@@ -16,9 +16,9 @@ from behaviours_data as bd
        join behaviours b on bd.idTypeOfBehaviour = b.idTypeBehaviour
        join subtemas s on b.idSubTema = s.idSubTemas
        join temas t on s.idTema = t.idTema
-where bd.clicod = {0}
--- where bd.clicod = 301180
+-- where bd.clicod = {0}
+where bd.clicod = 301180
 group by bd.NameOfBehaviour
 order by cantidadVisitas desc
--- limit 5
-limit {1}
+limit 5
+-- limit {1}
